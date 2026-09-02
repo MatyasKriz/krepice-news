@@ -1,0 +1,5 @@
+audio/
+out/
+__pycache__/
+.app-password
+.DS_Store
