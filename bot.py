@@ -6,14 +6,18 @@
 
 Run:   uv run bot.py          # process + post new announcements
        uv run bot.py --seed   # mark everything currently listed as done, no fetch/post (first-run backfill guard)
+       uv run bot.py --loop   # run forever: every hour at :03 between 06:00 and 22:00 local time (docker)
 State: out/<post_id>.json exists => post done. audio/ keeps mp3s so nothing is re-fetched.
 Auth:  .app-password holds the Bluesky app password (one line). Handle is BSKY_HANDLE below.
 """
+import datetime as dt
 import html
 import json
 import pathlib
 import re
 import sys
+import time
+import traceback
 import urllib.request
 
 BASE = "https://www.rozana.cz"
@@ -178,5 +182,30 @@ def main(argv: list[str]) -> int:
         print(post["date"], post["title"], f"({len(post['audio'])} audio)")
     return 0
 
+def next_run(now: dt.datetime) -> dt.datetime:
+    """Next hh:03 with 06 <= hh <= 22, strictly after now."""
+    t = now.replace(minute=3, second=0, microsecond=0)
+    if t <= now:
+        t += dt.timedelta(hours=1)
+    if t.hour > 22:
+        t = t.replace(hour=6) + dt.timedelta(days=1)
+    elif t.hour < 6:
+        t = t.replace(hour=6)
+    return t
+
+
+def loop() -> None:
+    while True:
+        t = next_run(dt.datetime.now())
+        print("next run", t, flush=True)
+        time.sleep(max(0, (t - dt.datetime.now()).total_seconds()))
+        try:
+            main([])
+        except Exception:
+            traceback.print_exc()  # keep the loop alive; the post is retried next tick
+
+
 if __name__ == "__main__":
+    if "--loop" in sys.argv:
+        loop()
     sys.exit(main(sys.argv[1:]))

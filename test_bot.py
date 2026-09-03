@@ -39,3 +39,13 @@ assert fix("e-mailu v pohospaní zavináče-e-mail.cz. Nově") == "e-mailu v poh
 assert fix("info zavináč obec tečka cz") == "info@obec.cz"
 assert fix("Vstupné dobrovolné.") == "Vstupné dobrovolné."  # untouched
 print("fix ok")
+
+import datetime as dt
+from bot import next_run
+D = dt.datetime(2026, 9, 3)
+assert next_run(D.replace(hour=10, minute=2)) == D.replace(hour=10, minute=3)
+assert next_run(D.replace(hour=10, minute=3)) == D.replace(hour=11, minute=3)
+assert next_run(D.replace(hour=22, minute=30)) == D.replace(hour=6, minute=3) + dt.timedelta(days=1)
+assert next_run(D.replace(hour=3, minute=0)) == D.replace(hour=6, minute=3)
+assert next_run(D.replace(hour=5, minute=10)) == D.replace(hour=6, minute=3)
+print("next_run ok")
