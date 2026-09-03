@@ -1,0 +1,8 @@
+.git
+.github
+__pycache__
+.DS_Store
+.app-password
+audio
+out
+test_bot.py
