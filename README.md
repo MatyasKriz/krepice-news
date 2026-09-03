@@ -11,7 +11,7 @@ uv run bot.py --seed   # mark everything currently listed as done
 
 ## Run from GHCR
 
-Long-running container, checks for new announcements every hour at :03 between 06:00 and 22:00 Prague time.
+Long-running container, checks for new announcements every hour at :03 plus a random 0-10 min offset, between 06:00 and 22:00 Prague time.
 State (done markers, mp3s, whisper model) stays inside the container, so `docker restart` it, do not recreate it.
 
 ```sh
