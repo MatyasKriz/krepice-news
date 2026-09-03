@@ -22,4 +22,4 @@ docker exec krepice-news python bot.py --seed   # first start only: skip the bac
 docker logs -f krepice-news
 ```
 
-`.app-password` holds the Bluesky app password (one line). Image is built and pushed by `.github/workflows/docker.yml` on every push to `main` and on `v*` tags.
+`.app-password` holds the Bluesky app password (one line). Image is built and pushed by `.github/workflows/docker.yml` on every push to `main`.
