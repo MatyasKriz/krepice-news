@@ -1,4 +1,3 @@
-import re
 from bot import parse_list, parse_post
 
 LIST = '''
@@ -29,8 +28,7 @@ assert chunk(short) == [short]
 long = " ".join(f"Věta číslo {i} má nějaký obsah." for i in range(30))
 parts = chunk(long)
 assert len(parts) > 1 and all(len(p) <= 300 for p in parts), parts
-assert parts[0].endswith(f"(1/{len(parts)})") and parts[-1].endswith(f"({len(parts)}/{len(parts)})")
-assert " ".join(re.sub(r" \(\d+/\d+\)$", "", p) for p in parts) == long
+assert " ".join(parts) == long
 print("chunk ok")
 
 from bot import fix

@@ -90,20 +90,18 @@ def parse_post(page: str) -> list[str]:
 
 
 def chunk(text: str, limit: int = POST_LIMIT) -> list[str]:
-    """Split into <=limit chunks at sentence boundaries; number them if more than one."""
+    """Split into <=limit chunks at sentence boundaries. Bluesky numbers thread posts itself."""
     sentences = re.split(r"(?<=[.!?])\s+", text.strip())
     parts, cur = [], ""
     for s in sentences:
-        if cur and len(cur) + 1 + len(s) > limit - 8:  # leave room for " (12/34)"
+        if cur and len(cur) + 1 + len(s) > limit:
             parts.append(cur)
             cur = s
         else:
             cur = f"{cur} {s}".strip()
     if cur:
         parts.append(cur)
-    if len(parts) == 1:
-        return parts
-    return [f"{p} ({i}/{len(parts)})" for i, p in enumerate(parts, 1)]
+    return parts
 
 
 def bsky_login():
