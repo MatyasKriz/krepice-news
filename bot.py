@@ -6,7 +6,7 @@
 
 Run:   uv run bot.py          # process + post new announcements
        uv run bot.py --seed   # mark everything currently listed as done, no fetch/post (first-run backfill guard)
-       uv run bot.py --loop   # run forever: hourly at :03 + 0-10 min jitter, 06:00-22:00 local time (docker)
+       uv run bot.py --loop   # run forever: hourly at :03 + 0-10 min jitter, 06:00-22:00 Prague time (docker)
 State: out/<post_id>.json exists => post done. audio/ keeps mp3s so nothing is re-fetched.
 Auth:  .app-password holds the Bluesky app password (one line). Handle is BSKY_HANDLE below.
 """
@@ -20,11 +20,13 @@ import sys
 import time
 import traceback
 import urllib.request
+import zoneinfo
 
 BASE = "https://www.rozana.cz"
 LIST = f"{BASE}/obec/9LKmaG-2NL1X/hlaseni"
 OUT = pathlib.Path("out")
 AUDIO = pathlib.Path("audio")
+TZ = zoneinfo.ZoneInfo("Europe/Prague")  # 06-22 window is Křepice local time, wherever this runs
 BSKY_HANDLE = "krepicenews.bsky.social"
 BSKY_PASSWORD_FILE = pathlib.Path(".app-password")
 POST_LIMIT = 300  # Bluesky grapheme limit
@@ -197,9 +199,9 @@ def next_run(now: dt.datetime) -> dt.datetime:
 
 def loop() -> None:
     while True:
-        t = next_run(dt.datetime.now()) + dt.timedelta(seconds=random.randint(0, 600))  # jitter, be a polite scraper
+        t = next_run(dt.datetime.now(TZ)) + dt.timedelta(seconds=random.randint(0, 600))  # jitter, be a polite scraper
         print("next run", t, flush=True)
-        time.sleep(max(0, (t - dt.datetime.now()).total_seconds()))
+        time.sleep(max(0, (t - dt.datetime.now(TZ)).total_seconds()))
         try:
             main([])
         except Exception:
