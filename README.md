@@ -12,14 +12,14 @@ uv run bot.py --seed   # mark everything currently listed as done (automatic on 
 ## Run from GHCR
 
 Long-running container, checks for new announcements every hour at :03 plus a random 0-10 min offset, between 06:00 and 22:00 Prague time.
-State (done markers, mp3s, whisper model) stays inside the container, so `docker restart` it, do not recreate it.
+All state (done markers, mp3s, whisper model, `.app-password`) lives in one mounted `/data` directory, so the image can be updated freely.
 First run with no state seeds the current backlog as done instead of posting it.
 
 ```sh
-docker run -d --name krepice-news --restart unless-stopped \
-  -v "$PWD/.app-password:/app/.app-password:ro" \
-  ghcr.io/matyaskriz/krepice-news:main
-docker logs -f krepice-news
+mkdir -p data && cp .app-password data/     # Bluesky app password, one line
+docker compose up -d
+docker compose logs -f
+docker compose pull && docker compose up -d # update to the latest image
 ```
 
-`.app-password` holds the Bluesky app password (one line). Image is built and pushed by `.github/workflows/docker.yml` on every push to `main`.
+Image is built and pushed by `.github/workflows/docker.yml` on every push to `main`.

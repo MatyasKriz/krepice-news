@@ -1,0 +1,6 @@
+services:
+  bot:
+    image: ghcr.io/matyaskriz/krepice-news:main
+    restart: unless-stopped
+    volumes:
+      - ./data:/data   # put .app-password in ./data before first start

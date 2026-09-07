@@ -1,10 +1,12 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-WORKDIR /app
 # Deps mirror the PEP 723 block at the top of bot.py.
 RUN uv pip install --system --no-cache faster-whisper atproto
-COPY bot.py .
+COPY bot.py /app/bot.py
 
-# State (out/, audio/, whisper model cache) lives in the container: run without --rm, restart instead of recreate.
-ENV TZ=Europe/Prague PYTHONUNBUFFERED=1
-CMD ["python", "bot.py", "--loop"]
+# All state lives under /data: out/ (done markers), audio/ (mp3s), hf/ (whisper model), .app-password.
+# Mount it, and the image can be replaced freely.
+WORKDIR /data
+VOLUME /data
+ENV TZ=Europe/Prague PYTHONUNBUFFERED=1 HF_HOME=/data/hf
+CMD ["python", "/app/bot.py", "--loop"]
