@@ -5,9 +5,10 @@
 """Daily bot: transcribe new Křepice municipal announcements from rozana.cz, post them to Bluesky.
 
 Run:   uv run bot.py          # process + post new announcements
-       uv run bot.py --seed   # mark everything currently listed as done, no fetch/post (first-run backfill guard)
+       uv run bot.py --seed   # mark everything currently listed as done, no fetch/post (automatic when out/ is empty)
        uv run bot.py --loop   # run forever: hourly at :03 + 0-10 min jitter, 06:00-22:00 Prague time (docker)
 State: out/<post_id>.json exists => post done. audio/ keeps mp3s so nothing is re-fetched.
+       No JSON at all => first run, everything listed is seeded, not posted.
 Auth:  .app-password holds the Bluesky app password (one line). Handle is BSKY_HANDLE below.
 """
 import datetime as dt
@@ -140,7 +141,8 @@ def main(argv: list[str]) -> int:
     posts = parse_list(get(LIST).decode())
     todo = [p for p in posts if not (OUT / f"{p['id']}.json").exists()]
 
-    if "--seed" in argv:
+    if "--seed" in argv or not any(OUT.glob("*.json")):
+        # Empty out/ means a fresh install (or lost state): mark the backlog done instead of re-posting all of it.
         for p in todo:
             (OUT / f"{p['id']}.json").write_text(json.dumps({**p, "seeded": True}, ensure_ascii=False, indent=2))
         status("")
