@@ -6,7 +6,7 @@
 
 Run:   uv run bot.py          # process + post new announcements
        uv run bot.py --seed   # mark everything currently listed as done, no fetch/post (automatic when out/ is empty)
-       uv run bot.py --loop   # run forever: hourly at :03 + 0-10 min jitter, 06:00-22:00 Prague time (docker)
+       uv run bot.py --loop   # run once now, then hourly at :03 + 0-10 min jitter, 06:00-22:00 Prague time (docker)
 State: out/<post_id>.json exists => post done. audio/ keeps mp3s so nothing is re-fetched.
        No JSON at all => first run, everything listed is seeded, not posted.
 Auth:  .app-password holds the Bluesky app password (one line). Handle is BSKY_HANDLE below.
@@ -197,15 +197,20 @@ def next_run(now: dt.datetime) -> dt.datetime:
     return t
 
 
+def tick() -> None:
+    try:
+        main([])
+    except Exception:
+        traceback.print_exc()  # keep the loop alive; the post is retried next tick
+
+
 def loop() -> None:
+    tick()  # once at startup, so a fresh container seeds / catches up without operator action
     while True:
         t = next_run(dt.datetime.now(TZ)) + dt.timedelta(seconds=random.randint(0, 600))  # jitter, be a polite scraper
         print("next run", t, flush=True)
         time.sleep(max(0, (t - dt.datetime.now(TZ)).total_seconds()))
-        try:
-            main([])
-        except Exception:
-            traceback.print_exc()  # keep the loop alive; the post is retried next tick
+        tick()
 
 
 if __name__ == "__main__":
